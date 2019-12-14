@@ -16,12 +16,11 @@ extern crate signal_hook;
 extern crate log;
 extern crate fern;
 extern crate lumberjack_rs;
-extern crate serde_json;
 extern crate threadpool;
 extern crate dbus;
 
 fn main() {
-    let (log_conf, conf) = config::load_config(None);
+    let (log_conf, conf) = config::load_config();
     logging::setup_logging(&log_conf.log_dir).unwrap();
     let conf = match conf {
         Ok(conf) => conf,
