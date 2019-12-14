@@ -1,4 +1,3 @@
-mod config;
 mod notification_handler;
 mod services;
 mod signal_handler;
@@ -16,22 +15,15 @@ extern crate fern;
 extern crate threadpool;
 extern crate dbus;
 
+use std::path::PathBuf;
+
 fn main() {
-    let (log_conf, conf) = config::load_config();
-    let conf = match conf {
-        Ok(conf) => conf,
-        Err(e) => {
-            error!("Error while loading the conf: {}", e);
-            panic!(
-                "Reading conf did not work. See stdout or log at: {:?}",
-                log_conf.log_dir
-            );
-        }
-    };
+    let unit_dirs = vec![PathBuf::from("./test_units")];
+    let socket_dir = PathBuf::from("./notifications");
 
     // initial loading of the units and matching of the various before/after settings
     // also opening all fildescriptors in the socket files
-    let (service_table, socket_table) = unit_parser::load_all_units(&conf.unit_dirs).unwrap();
+    let (service_table, socket_table) = unit_parser::load_all_units(&unit_dirs).unwrap();
 
     use std::sync::{Arc, Mutex};
     let service_table = Arc::new(Mutex::new(service_table));
@@ -65,7 +57,7 @@ fn main() {
     let pid_table = services::run_services(
         service_table.clone(),
         socket_table.clone(),
-        conf.notification_sockets_dir.clone(),
+        socket_dir.clone(),
         eventfds.clone(),
     );
 
@@ -76,6 +68,6 @@ fn main() {
         service_table.clone(),
         socket_table.clone(),
         pid_table.clone(),
-        conf.notification_sockets_dir.clone(),
+        socket_dir.clone(),
     );
 }
