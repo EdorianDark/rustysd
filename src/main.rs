@@ -1,6 +1,4 @@
 mod config;
-mod control;
-mod logging;
 mod notification_handler;
 mod services;
 mod signal_handler;
@@ -15,13 +13,11 @@ extern crate signal_hook;
 #[macro_use]
 extern crate log;
 extern crate fern;
-extern crate lumberjack_rs;
 extern crate threadpool;
 extern crate dbus;
 
 fn main() {
     let (log_conf, conf) = config::load_config();
-    logging::setup_logging(&log_conf.log_dir).unwrap();
     let conf = match conf {
         Ok(conf) => conf,
         Err(e) => {
@@ -40,9 +36,6 @@ fn main() {
     use std::sync::{Arc, Mutex};
     let service_table = Arc::new(Mutex::new(service_table));
     let socket_table = Arc::new(Mutex::new(socket_table));
-
-    // listen on user commands like listunits/kill/restart...
-    control::accept_control_connections(service_table.clone(), socket_table.clone());
 
     let notification_eventfd =
         nix::sys::eventfd::eventfd(0, nix::sys::eventfd::EfdFlags::EFD_CLOEXEC).unwrap();
